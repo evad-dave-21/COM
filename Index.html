@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Minja" />
+  <title>The Chronicles of Minja</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface2: #181818;
+      --border: #1e1e1e;
+      --gold: #d4a853;
+      --green: #4caf7d;
+      --text: #f0ede8;
+      --muted: #888;
+      --dim: #444;
+      --faint: #222;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      overscroll-behavior: none;
+    }
+
+    #app {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* ── Header ── */
+    .header {
+      padding: env(safe-area-inset-top, 32px) 24px 16px;
+      padding-top: max(env(safe-area-inset-top, 0px), 32px);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-sub {
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .header-title {
+      font-size: 22px;
+      font-weight: normal;
+      color: var(--text);
+    }
+    .header-date {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── Nav ── */
+    nav {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    nav button {
+      flex: 1;
+      padding: 14px 4px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--dim);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: 'Georgia', serif;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    nav button.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+
+    /* ── Views ── */
+    .view { padding: 24px 24px 120px; display: none; }
+    .view.active { display: block; }
+
+    /* ── Progress bar ── */
+    .progress-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .progress-label { color: var(--dim); }
+    .progress-count { color: var(--gold); }
+    .progress-count.done { color: var(--green); }
+    .progress-track {
+      height: 4px;
+      background: var(--faint);
+      border-radius: 2px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--gold);
+      transition: width 0.4s ease;
+    }
+    .progress-fill.done { background: var(--green); }
+
+    /* ── Task rows ── */
+    .task-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid #141414;
+    }
+    .task-check {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      border: 1.5px solid #333;
+      background: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: white;
+      transition: all 0.2s;
+    }
+    .task-check.checked {
+      background: var(--green);
+      border-color: var(--green);
+    }
+    .task-label {
+      flex: 1;
+      font-size: 15px;
+      color: #d4d0cb;
+      transition: all 0.2s;
+      font-family: 'Georgia', serif;
+    }
+    .task-label.checked {
+      color: #3a3a3a;
+      text-decoration: line-through;
+    }
+    .task-remove {
+      background: none;
+      border: none;
+      color: #2a2a2a;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0 4px;
+      line-height: 1;
+    }
+    .task-remove:hover { color: #555; }
+
+    /* ── Add task ── */
+    .add-task-btn {
+      margin-top: 20px;
+      width: 100%;
+      background: none;
+      border: 1px dashed #222;
+      border-radius: 8px;
+      color: var(--dim);
+      font-size: 13px;
+      padding: 14px 18px;
+      cursor: pointer;
+      text-align: left;
+      letter-spacing: 1px;
+      font-family: 'Georgia', serif;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .add-task-btn:hover { border-color: #444; color: #888; }
+
+    .add-task-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .add-task-row input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid #222;
+      border-radius: 8px;
+      padding: 13px 14px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: 'Georgia', serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .add-task-row input:focus { border-color: var(--gold); }
+    .add-task-row button {
+      background: var(--gold);
+      border: none;
+      border-radius: 8px;
+      padding: 13px 18px;
+      color: #0a0a0a;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .empty-msg {
+      color: #333;
+      font-size: 14px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    /* ── Calendar ── */
+    #view-month { padding: 0 0 120px; }
+
+    .cal-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px 12px;
+    }
+    .cal-nav button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 26px;
+      cursor: pointer;
+      padding: 4px 12px;
+    }
+    .cal-month-label {
+      font-size: 16px;
+      letter-spacing: 2px;
+      color: var(--text);
+    }
+    .cal-days-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      padding: 0 16px;
+    }
+    .cal-days-header span {
+      text-align: center;
+      font-size: 10px;
+      color: #444;
+      letter-spacing: 1px;
+      padding: 4px 0;
+      text-transform: uppercase;
+    }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      padding: 4px 16px 16px;
+    }
+    .cal-cell {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      border: 1px solid var(--faint);
+      background: var(--surface);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      transition: all 0.15s;
+    }
+    .cal-cell.today { border-color: var(--gold); }
+    .cal-cell.selected { border-color: #888; background: #1a1a1a; }
+    .cal-cell.empty { background: none; border-color: transparent; cursor: default; }
+    .cal-cell span {
+      font-size: 13px;
+      color: #ccc;
+      font-family: 'Georgia', serif;
+    }
+    .cal-cell.today span { color: var(--gold); }
+    .cal-mini-bar {
+      width: 60%;
+      height: 3px;
+      border-radius: 2px;
+      background: #222;
+      overflow: hidden;
+    }
+    .cal-mini-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--gold);
+    }
+    .cal-mini-fill.done { background: var(--green); }
+
+    /* ── Day panel ── */
+    .day-panel {
+      margin: 0 16px;
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 20px;
+    }
+    .day-panel-title {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #555;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    /* ── Settings ── */
+    #view-settings { padding: 24px 24px 120px; }
+    .settings-section-title {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #555;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .settings-desc {
+      font-size: 12px;
+      color: #444;
+      margin-bottom: 20px;
+      line-height: 1.7;
+    }
+    .default-task-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    .default-task-row span {
+      font-size: 15px;
+      color: #d4d0cb;
+      font-family: 'Georgia', serif;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-sub">The Chronicles of Minja</div>
+    <div class="header-title" id="header-title"></div>
+    <div class="header-date" id="header-date"></div>
+  </div>
+
+  <!-- Nav -->
+  <nav>
+    <button class="active" onclick="switchView('today')">Today</button>
+    <button onclick="switchView('month')">Calendar</button>
+    <button onclick="switchView('settings')">Manage Tasks</button>
+  </nav>
+
+  <!-- Today View -->
+  <div class="view active" id="view-today">
+    <div id="today-tasks"></div>
+  </div>
+
+  <!-- Month View -->
+  <div id="view-month" style="display:none;">
+    <div class="cal-nav">
+      <button onclick="shiftMonth(-1)">‹</button>
+      <span class="cal-month-label" id="cal-label"></span>
+      <button onclick="shiftMonth(1)">›</button>
+    </div>
+    <div class="cal-days-header">
+      <span>Sun</span><span>Mon</span><span>Tue</span>
+      <span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div id="day-panel-wrap"></div>
+  </div>
+
+  <!-- Settings View -->
+  <div id="view-settings" style="display:none;">
+    <div class="settings-section-title">Default Tasks</div>
+    <div class="settings-desc">These tasks appear on every day automatically.</div>
+    <div id="default-task-list"></div>
+    <div class="add-task-row" style="margin-top:24px;">
+      <input type="text" id="new-default-input" placeholder="Add default task..." onkeydown="if(event.key==='Enter') addDefaultTask()" />
+      <button onclick="addDefaultTask()">+</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const STORAGE_KEY = 'minja_chronicles_v1';
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  let state = {
+    defaultTasks: [],
+    completions: {},
+    customDayTasks: {}
+  };
+
+  let calYear, calMonth, selectedDayKey = null;
+  let currentView = 'today';
+
+  const today = new Date();
+  const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+  // ── Storage ──────────────────────────────────────────────────────────────────
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) state = JSON.parse(raw);
+    } catch(e) {}
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch(e) {}
+  }
+
+  function dateKey(y, m, d) {
+    return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+
+  // ── Task helpers ─────────────────────────────────────────────────────────────
+  function getTasksForDay(key) {
+    const defaults = state.defaultTasks.map(t => ({...t, isDefault: true}));
+    const custom = (state.customDayTasks[key] || []).map(t => ({...t, isDefault: false}));
+    return [...defaults, ...custom];
+  }
+
+  function getDayProgress(key) {
+    const tasks = getTasksForDay(key);
+    if (!tasks.length) return null;
+    const done = tasks.filter(t => state.completions[key]?.[t.id]).length;
+    return { done, total: tasks.length };
+  }
+
+  function toggleTask(dayKey, taskId) {
+    if (!state.completions[dayKey]) state.completions[dayKey] = {};
+    state.completions[dayKey][taskId] = !state.completions[dayKey][taskId];
+    save();
+    render();
+  }
+
+  function addDefaultTask() {
+    const input = document.getElementById('new-default-input');
+    const label = input.value.trim();
+    if (!label) return;
+    state.defaultTasks.push({ id: 'def_' + Date.now(), label });
+    input.value = '';
+    save();
+    render();
+  }
+
+  function removeDefaultTask(id) {
+    state.defaultTasks = state.defaultTasks.filter(t => t.id !== id);
+    save();
+    render();
+  }
+
+  function addCustomTask(dayKey, inputId, wrapId) {
+    const input = document.getElementById(inputId);
+    const label = input.value.trim();
+    if (!label) return;
+    if (!state.customDayTasks[dayKey]) state.customDayTasks[dayKey] = [];
+    state.customDayTasks[dayKey].push({ id: 'cust_' + Date.now(), label });
+    input.value = '';
+    save();
+    render();
+  }
+
+  function removeCustomTask(dayKey, taskId) {
+    if (!state.customDayTasks[dayKey]) return;
+    state.customDayTasks[dayKey] = state.customDayTasks[dayKey].filter(t => t.id !== taskId);
+    save();
+    render();
+  }
+
+  // ── Render helpers ───────────────────────────────────────────────────────────
+  function renderTaskList(container, dayKey, tasks, showAddBtn) {
+    const completions = state.completions[dayKey] || {};
+    const done = tasks.filter(t => completions[t.id]).length;
+    const pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
+    const complete = pct === 100 && tasks.length > 0;
+
+    let html = '';
+
+    if (tasks.length > 0) {
+      html += `
+        <div class="progress-row">
+          <span class="progress-label">Progress</span>
+          <span class="progress-count ${complete ? 'done' : ''}">${done}/${tasks.length}</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill ${complete ? 'done' : ''}" style="width:${pct}%"></div>
+        </div>
+      `;
+    } else {
+      html += `<div class="empty-msg">No tasks yet. Add defaults in "Manage Tasks" or add one below.</div>`;
+    }
+
+    tasks.forEach(task => {
+      const checked = !!completions[task.id];
+      html += `
+        <div class="task-row">
+          <button class="task-check ${checked ? 'checked' : ''}" onclick="toggleTask('${dayKey}','${task.id}')">
+            ${checked ? '✓' : ''}
+          </button>
+          <span class="task-label ${checked ? 'checked' : ''}">${escHtml(task.label)}</span>
+          ${!task.isDefault ? `<button class="task-remove" onclick="removeCustomTask('${dayKey}','${task.id}')">×</button>` : ''}
+        </div>
+      `;
+    });
+
+    if (showAddBtn) {
+      const inputId = 'add-input-' + dayKey;
+      const rowId = 'add-row-' + dayKey;
+      const btnId = 'add-btn-' + dayKey;
+      html += `
+        <button class="add-task-btn" id="${btnId}" onclick="showAddRow('${dayKey}','${inputId}','${rowId}','${btnId}')">+ Add task for this day</button>
+        <div class="add-task-row" id="${rowId}" style="display:none;">
+          <input type="text" id="${inputId}" placeholder="Task name..." onkeydown="if(event.key==='Enter') addCustomTask('${dayKey}','${inputId}','${rowId}'); if(event.key==='Escape') hideAddRow('${inputId}','${rowId}','${btnId}')" />
+          <button onclick="addCustomTask('${dayKey}','${inputId}','${rowId}')">+</button>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+  }
+
+  function showAddRow(dayKey, inputId, rowId, btnId) {
+    document.getElementById(rowId).style.display = 'flex';
+    document.getElementById(btnId).style.display = 'none';
+    setTimeout(() => document.getElementById(inputId)?.focus(), 50);
+  }
+
+  function hideAddRow(inputId, rowId, btnId) {
+    document.getElementById(rowId).style.display = 'none';
+    document.getElementById(btnId).style.display = 'block';
+    document.getElementById(inputId).value = '';
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── View switching ───────────────────────────────────────────────────────────
+  function switchView(view) {
+    currentView = view;
+    document.querySelectorAll('.view, #view-month, #view-settings').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    const views = { today: 'view-today', month: 'view-month', settings: 'view-settings' };
+    document.getElementById(views[view]).style.display = 'block';
+    document.querySelectorAll('nav button')[['today','month','settings'].indexOf(view)].classList.add('active');
+    if (view === 'today') document.getElementById('view-today').style.display = 'block';
+    render();
+  }
+
+  function shiftMonth(dir) {
+    calMonth += dir;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    selectedDayKey = null;
+    render();
+  }
+
+  // ── Main render ──────────────────────────────────────────────────────────────
+  function render() {
+    // Header
+    document.getElementById('header-title').textContent =
+      today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    document.getElementById('header-date').textContent =
+      today.getFullYear();
+
+    if (currentView === 'today') {
+      const tasks = getTasksForDay(todayKey);
+      renderTaskList(document.getElementById('today-tasks'), todayKey, tasks, true);
+    }
+
+    if (currentView === 'month') {
+      document.getElementById('cal-label').textContent = `${MONTHS[calMonth]} ${calYear}`;
+
+      const firstDay = new Date(calYear, calMonth, 1).getDay();
+      const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+      let gridHtml = '';
+
+      for (let i = 0; i < firstDay; i++) {
+        gridHtml += `<div class="cal-cell empty"></div>`;
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const key = dateKey(calYear, calMonth, d);
+        const isToday = (d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear());
+        const isSelected = key === selectedDayKey;
+        const prog = getDayProgress(key);
+        let cls = 'cal-cell';
+        if (isToday) cls += ' today';
+        if (isSelected) cls += ' selected';
+
+        let barHtml = '';
+        if (prog) {
+          const pct = prog.done / prog.total;
+          const done = pct === 1;
+          barHtml = `<div class="cal-mini-bar"><div class="cal-mini-fill ${done ? 'done' : ''}" style="width:${Math.round(pct*100)}%"></div></div>`;
+        }
+
+        gridHtml += `
+          <div class="${cls}" onclick="selectDay('${key}')">
+            <span>${d}</span>
+            ${barHtml}
+          </div>
+        `;
+      }
+
+      document.getElementById('cal-grid').innerHTML = gridHtml;
+
+      // Day panel
+      const panelWrap = document.getElementById('day-panel-wrap');
+      if (selectedDayKey) {
+        const parts = selectedDayKey.split('-');
+        const y = parts[0], m = parseInt(parts[1])-1, d = parseInt(parts[2]);
+        const tasks = getTasksForDay(selectedDayKey);
+        panelWrap.innerHTML = `
+          <div class="day-panel">
+            <div class="day-panel-title">${MONTHS[m]} ${d}, ${y}</div>
+            <div id="day-panel-tasks"></div>
+          </div>
+        `;
+        renderTaskList(document.getElementById('day-panel-tasks'), selectedDayKey, tasks, true);
+      } else {
+        panelWrap.innerHTML = '';
+      }
+    }
+
+    if (currentView === 'settings') {
+      const list = document.getElementById('default-task-list');
+      if (state.defaultTasks.length === 0) {
+        list.innerHTML = '<div class="empty-msg">No default tasks yet.</div>';
+      } else {
+        list.innerHTML = state.defaultTasks.map(t => `
+          <div class="default-task-row">
+            <span>${escHtml(t.label)}</span>
+            <button class="task-remove" onclick="removeDefaultTask('${t.id}')">×</button>
+          </div>
+        `).join('');
+      }
+    }
+  }
+
+  function selectDay(key) {
+    selectedDayKey = selectedDayKey === key ? null : key;
+    render();
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  load();
+  calYear = today.getFullYear();
+  calMonth = today.getMonth();
+  render();
+</script>
+</body>
+</html>
