@@ -1,0 +1,78 @@
+<body>
+
+<!-- Bat animation -->
+<div class="bats">
+  <div class="bat">🦇</div>
+  <div class="bat">🦇</div>
+  <div class="bat">🦇</div>
+  <div class="bat">🦇</div>
+  <div class="bat">🦇</div>
+</div>
+
+<!-- Flash overlay -->
+<div class="complete-flash" id="complete-flash"></div>
+
+<div id="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-eyebrow">Daily Chronicle</div>
+    <div class="header-logo">Chronicle</div>
+    <div class="header-date" id="header-date"></div>
+    <div class="streak-bar" id="streak-bar">
+      <span class="streak-icon">🔥</span>
+      <span class="streak-text">Current Streak</span>
+      <span class="streak-count" id="streak-count">0</span>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav>
+    <button class="active" onclick="switchView('today')">Today</button>
+    <button onclick="switchView('month')">Calendar</button>
+    <button onclick="switchView('settings')">Tasks</button>
+  </nav>
+
+  <!-- Today View -->
+  <div class="view active" id="view-today">
+    <div id="today-hero" class="today-hero" style="display:none;">
+      <div class="hero-label">Completion Rate</div>
+      <div class="hero-pct" id="hero-pct">0<span>%</span></div>
+      <div class="hero-sub" id="hero-sub"></div>
+      <div class="hero-bar-wrap">
+        <div class="hero-bar" id="hero-bar" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="section-title">Today's Tasks</div>
+    <div style="height:12px;"></div>
+    <div id="today-tasks"></div>
+  </div>
+
+  <!-- Month View -->
+  <div id="view-month" style="display:none;">
+    <div class="cal-nav">
+      <button onclick="shiftMonth(-1)">&#8249;</button>
+      <span class="cal-month-label" id="cal-label"></span>
+      <button onclick="shiftMonth(1)">&#8250;</button>
+    </div>
+    <div class="cal-days-header">
+      <span>Sun</span><span>Mon</span><span>Tue</span>
+      <span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div id="day-panel-wrap"></div>
+  </div>
+
+  <!-- Settings View -->
+  <div id="view-settings" style="display:none;">
+    <div class="settings-section-title">Default Tasks</div>
+    <div class="settings-desc">These appear on every day automatically.</div>
+    <div id="default-task-list"></div>
+    <div class="add-task-row" style="margin-top:24px;">
+      <input type="text" id="new-default-input" placeholder="New default task..." onkeydown="if(event.key==='Enter') addDefaultTask()" />
+      <button onclick="addDefaultTask()">+</button>
+    </div>
+  </div>
+
+</div>
+
